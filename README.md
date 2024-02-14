@@ -7,5 +7,6 @@
 
 [Lecture 2](./lectures/lecture02.md)
 
-### Resources
+[Lecture 3](./lectures/lecture03.md)
+
 

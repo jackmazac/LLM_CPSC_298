@@ -6,7 +6,7 @@
 - Discord invite is on Canvas
 - OpenAI credits -- will use Copilot and Bard for now.
 
-## Notes
+## Class Notes
 
 <div align="center">
   <img src="./LLM_coding_process.png" width="400" height="365" />
