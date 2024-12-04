@@ -1,4 +1,3 @@
-import asyncio
 from src.chat import DevelopmentChat
 from src.config import Config
 import logging
@@ -7,7 +6,7 @@ import os
 logging.basicConfig(**Config.get_logging_config())
 logger = logging.getLogger(__name__)
 
-async def test_hello_world():
+def test_hello_world():
     """Test creating a simple Hello World program"""
     chat = DevelopmentChat(max_rounds=10)
     
@@ -26,12 +25,12 @@ async def test_hello_world():
         os.makedirs("coding", exist_ok=True)
         
         print("\n=== Creating Hello World Program ===")
-        result = await chat._plan_and_execute(task)
+        result = chat._plan_and_execute(task)
         
         print("\n=== Results ===")
         print(f"Status: {result['status']}")
         if result.get('results'):
-            print("\nGenerated Code:")
+            print("\nResults:")
             print(result['results'])
         
         # Check if file was created
@@ -47,15 +46,15 @@ async def test_hello_world():
         logger.error(f"Test failed: {str(e)}", exc_info=True)
         return False
 
-async def test_framework():
+def test_framework():
     """Run all framework tests"""
-    print("\n=== Testing AutoGen Framework with GPT-4o mini ===")
+    print("\n=== Testing AutoGen Framework with GPT-4 ===")
     print(f"Model: {Config.OPENAI_MODEL}")
     print(f"Temperature: {Config.OPENAI_TEMPERATURE}")
     print("==========================================\n")
     
     # Run hello world test
-    success = await test_hello_world()
+    success = test_hello_world()
     
     print("\n=== Test Summary ===")
     print(f"Framework Test: {'✅ Passed' if success else '❌ Failed'}")
@@ -64,4 +63,4 @@ async def test_framework():
     return success
 
 if __name__ == "__main__":
-    asyncio.run(test_framework()) 
+    test_framework() 
