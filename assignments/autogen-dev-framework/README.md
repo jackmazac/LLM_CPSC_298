@@ -1,19 +1,20 @@
 # AutoGen Development Framework
 
-A streamlined development framework using Microsoft's AutoGen library for automated software development. This framework integrates AI agents for coding, testing, and performance monitoring.
+A streamlined development framework using Microsoft's AutoGen library for automated software development. This framework integrates specialized AI agents for coding, testing, debugging, and performance monitoring.
 
 ## Features
 
 - **AI-Powered Development**
   - Code generation with GPT-4
-  - Automated test creation and execution
-  - Performance monitoring and metrics
+  - Automated testing and validation
+  - Intelligent error debugging
+  - Performance monitoring
 
-- **Core Components**
-  - Development Chat System
-  - Testing Framework
-  - Performance Monitoring
-  - Automated Code Generation
+- **Agent Architecture**
+  - Assistant Agent: Main development and code generation
+  - User Proxy Agent: Task management and code execution
+  - Testing Agent: Test creation and validation
+  - Debugging Agent: Error analysis and resolution
 
 ## Prerequisites
 
@@ -54,6 +55,11 @@ LOG_LEVEL=INFO
 # Agent Configuration
 MAX_CONSECUTIVE_AUTO_REPLY=3
 WORK_DIR=./coding
+
+# Performance Settings
+TIMEOUT=600
+MAX_RETRIES=3
+CACHE_SEED=42
 ```
 
 ## Usage
@@ -79,8 +85,9 @@ Create a Python script that:
 autogen-dev-framework/
 ├── src/
 │   ├── agents/
-│   │   ├── tester.py     # Testing agent implementation
-│   │   └── ...
+│   │   ├── debugger.py   # Error analysis and debugging
+│   │   ├── tester.py     # Test generation and execution
+│   │   └── __init__.py   # Agent exports
 │   ├── chat.py           # Main chat implementation
 │   ├── config.py         # Configuration management
 │   ├── monitor.py        # Performance monitoring
@@ -96,17 +103,33 @@ autogen-dev-framework/
 - Interactive development environment
 - AI-powered code generation
 - Real-time code execution
+- Error handling and recovery
 
 ### Testing Framework
 - Automated test generation
 - PyTest integration
 - Test result reporting
+- Edge case validation
+
+### Debugging System
+- Intelligent error analysis
+- Stack trace interpretation
+- Fix suggestions
+- Bug pattern recognition
 
 ### Performance Monitoring
 - Task execution timing
 - Success rate tracking
 - System resource monitoring
 - Detailed metrics output
+
+## Error Handling
+
+The framework provides comprehensive error handling:
+1. **Error Detection**: Captures runtime errors and test failures
+2. **Analysis**: Uses DebuggingAgent to analyze error patterns
+3. **Resolution**: Provides detailed debug analysis and fix suggestions
+4. **Monitoring**: Tracks error patterns and resolution success rates
 
 ## Contributing
 
