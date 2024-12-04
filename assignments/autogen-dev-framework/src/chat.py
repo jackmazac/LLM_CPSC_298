@@ -8,6 +8,8 @@ from typing import Dict, Any
 from src.config import Config
 from src.monitor import PerformanceMonitor, measure_time
 from src.agents.tester import TestingAgent
+from src.agents.debugger import DebuggingAgent
+from src.agents.reviewer import ReviewAgent
 
 logging.basicConfig(**Config.get_logging_config())
 logger = logging.getLogger(__name__)
@@ -48,6 +50,16 @@ class DevelopmentChat:
         self.tester = TestingAgent(
             llm_config=Config.get_openai_config()
         )
+        
+        # Debugging agent for error analysis
+        self.debugger = DebuggingAgent(
+            llm_config=Config.get_openai_config()
+        )
+        
+        # Review agent for code quality
+        self.reviewer = ReviewAgent(
+            llm_config=Config.get_openai_config()
+        )
     
     def _extract_code_from_message(self, message: str) -> str:
         """Extract code from message and clean it"""
@@ -63,6 +75,43 @@ class DevelopmentChat:
         
         return code
     
+    def _handle_error(self, error: Exception, context: Dict[str, Any]) -> Dict[str, Any]:
+        """Handle errors using the debugging agent"""
+        try:
+            # Get error details
+            error_message = str(error)
+            stack_trace = None
+            if hasattr(error, '__traceback__'):
+                import traceback
+                stack_trace = ''.join(traceback.format_tb(error.__traceback__))
+            
+            # Get analysis from debugger
+            debug_result = self.debugger.analyze_error(
+                error_message=error_message,
+                stack_trace=stack_trace,
+                context=context
+            )
+            
+            if debug_result.get('success'):
+                return {
+                    'status': 'debug',
+                    'analysis': debug_result['analysis'],
+                    'error': error_message,
+                    'stack_trace': stack_trace
+                }
+            else:
+                return {
+                    'status': 'failed',
+                    'error': error_message
+                }
+                
+        except Exception as e:
+            logger.error(f"Error in debugging: {str(e)}", exc_info=True)
+            return {
+                'status': 'failed',
+                'error': str(e)
+            }
+    
     def _run_tests(self, code: str, filename: str) -> Dict[str, Any]:
         """Run tests for the generated code"""
         try:
@@ -76,6 +125,17 @@ class DevelopmentChat:
             
         except Exception as e:
             logger.error(f"Error running tests: {str(e)}", exc_info=True)
+            return {
+                'success': False,
+                'error': str(e)
+            }
+    
+    def _review_code(self, code: str, context: Dict[str, Any]) -> Dict[str, Any]:
+        """Review code quality"""
+        try:
+            return self.reviewer.review_code(code, context)
+        except Exception as e:
+            logger.error(f"Error in code review: {str(e)}", exc_info=True)
             return {
                 'success': False,
                 'error': str(e)
@@ -103,8 +163,9 @@ class DevelopmentChat:
             # Check if task completed successfully
             success = last_message and "TERMINATE" in last_message
             
-            # Run tests if code was generated
+            # Process code if generated
             test_results = None
+            review_results = None
             if success and os.path.exists("coding"):
                 # Find the most recently modified Python file
                 files = list(Path("coding").glob("*.py"))
@@ -116,7 +177,23 @@ class DevelopmentChat:
                         # Write clean code to file
                         with open(latest_file, 'w') as f:
                             f.write(code)
+                        
+                        # Run tests
                         test_results = self._run_tests(code, latest_file.name)
+                        
+                        # Review code
+                        review_results = self._review_code(code, {
+                            'task': task,
+                            'filename': latest_file.name
+                        })
+                        
+                        # If tests fail, get debug analysis
+                        if not test_results.get('success'):
+                            debug_results = self._handle_error(
+                                Exception(test_results.get('error', 'Test failure')),
+                                {'code': code, 'test_results': test_results}
+                            )
+                            test_results['debug_analysis'] = debug_results.get('analysis')
             
             # Record task result
             self.monitor.record_task_result(success)
@@ -125,16 +202,20 @@ class DevelopmentChat:
                 'status': 'completed' if success else 'ongoing',
                 'results': last_message,
                 'test_results': test_results,
+                'review_results': review_results,
                 'metrics': self.monitor.get_metrics()
             }
             
         except Exception as e:
             logger.error(f"Task execution error: {str(e)}", exc_info=True)
+            # Get debug analysis
+            debug_results = self._handle_error(e, {'task': task})
             # Record task failure
             self.monitor.record_task_result(False)
             return {
                 'status': 'failed',
                 'error': str(e),
+                'debug_analysis': debug_results.get('analysis'),
                 'metrics': self.monitor.get_metrics()
             }
 
@@ -163,10 +244,32 @@ class DevelopmentChat:
                             print("❌ Some tests failed")
                             if 'error' in test_results:
                                 print(f"Error: {test_results['error']}")
+                            if 'debug_analysis' in test_results:
+                                print("\n=== Debug Analysis ===")
+                                print(test_results['debug_analysis'])
+                        print("===================")
+                    
+                    # Display review results if available
+                    if result.get('review_results'):
+                        print("\n=== Code Review ===")
+                        review = result['review_results']
+                        if review['success']:
+                            print("\nMetrics:")
+                            for key, value in review.get('metrics', {}).items():
+                                print(f"- {key}: {value}")
+                            print("\nSuggestions:")
+                            for suggestion in review.get('suggestions', []):
+                                print(f"- {suggestion}")
+                        else:
+                            print("❌ Review failed")
+                            print(f"Error: {review.get('error')}")
                         print("===================")
                         
                 elif result['status'] == 'failed':
                     print(f"\n❌ Task failed: {result.get('error')}")
+                    if result.get('debug_analysis'):
+                        print("\n=== Debug Analysis ===")
+                        print(result['debug_analysis'])
                 else:
                     print("\n⏳ Task is ongoing...")
                 

@@ -1,6 +1,6 @@
 # AutoGen Development Framework
 
-A streamlined development framework using Microsoft's AutoGen library for automated software development. This framework integrates specialized AI agents for coding, testing, debugging, and performance monitoring.
+A streamlined development framework using Microsoft's AutoGen library for automated software development. This framework integrates specialized AI agents for coding, testing, debugging, and code review.
 
 ## Features
 
@@ -8,6 +8,7 @@ A streamlined development framework using Microsoft's AutoGen library for automa
   - Code generation with GPT-4
   - Automated testing and validation
   - Intelligent error debugging
+  - Code quality review
   - Performance monitoring
 
 - **Agent Architecture**
@@ -15,6 +16,7 @@ A streamlined development framework using Microsoft's AutoGen library for automa
   - User Proxy Agent: Task management and code execution
   - Testing Agent: Test creation and validation
   - Debugging Agent: Error analysis and resolution
+  - Review Agent: Code quality and best practices
 
 ## Prerequisites
 
@@ -86,6 +88,7 @@ autogen-dev-framework/
 ├── src/
 │   ├── agents/
 │   │   ├── debugger.py   # Error analysis and debugging
+│   │   ���── reviewer.py   # Code quality review
 │   │   ├── tester.py     # Test generation and execution
 │   │   └── __init__.py   # Agent exports
 │   ├── chat.py           # Main chat implementation
@@ -117,6 +120,13 @@ autogen-dev-framework/
 - Fix suggestions
 - Bug pattern recognition
 
+### Code Review System
+- Code quality metrics
+- Best practices validation
+- Security review
+- Performance optimization
+- Documentation analysis
+
 ### Performance Monitoring
 - Task execution timing
 - Success rate tracking
@@ -130,6 +140,15 @@ The framework provides comprehensive error handling:
 2. **Analysis**: Uses DebuggingAgent to analyze error patterns
 3. **Resolution**: Provides detailed debug analysis and fix suggestions
 4. **Monitoring**: Tracks error patterns and resolution success rates
+
+## Code Quality
+
+The framework ensures high code quality through:
+1. **Static Analysis**: AST-based code metrics
+2. **Best Practices**: Python conventions and patterns
+3. **Security**: Input validation and security checks
+4. **Performance**: Algorithm efficiency analysis
+5. **Documentation**: Docstring and comment validation
 
 ## Contributing
 
