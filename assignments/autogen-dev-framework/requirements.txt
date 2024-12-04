@@ -5,3 +5,4 @@ openai
 typing-extensions
 requests
 pytest
+psutil~=5.9.0
